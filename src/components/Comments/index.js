@@ -20,18 +20,24 @@ class Comments extends Component {
   onAddComment = event => {
     event.preventDefault()
     const {name, comment} = this.state
-
+    const randomBgClassNames =
+      initialContainerBackgroundClassNames[
+        Math.floor(Math.random() * initialContainerBackgroundClassNames.length)
+      ]
+    const initialBgClassNames = `initial-container ${randomBgClassNames}`
     const newComment = {
       id: uuidv4(),
       name,
       comment,
+      date: new Date(),
+      isLiked: false,
+      bgClassNames: initialBgClassNames,
     }
     this.setState(prevState => ({
       commentsList: [...prevState.commentsList, newComment],
       name: '',
       comment: '',
     }))
-    console.log(this.state)
   }
 
   changeName = event => {
@@ -42,15 +48,36 @@ class Comments extends Component {
     this.setState({comment: event.target.value})
   }
 
+  getIsLiked = id => {
+    this.setState(prevState => ({
+      commentsList: prevState.commentsList.map(eachComment => {
+        if (eachComment.id === id) {
+          return {...eachComment, isLiked: !eachComment.isLiked}
+        }
+        return eachComment
+      }),
+    }))
+  }
+
+  clockOnDelBtn = commentId => {
+    const {commentsList} = this.state
+    this.setState({
+      commentsList: commentsList.filter(
+        eachComment => eachComment.id !== commentId,
+      ),
+    })
+  }
+
   getUlContainer = () => {
     const {commentsList} = this.state
     const jsxElement = (
-      <ul>
+      <ul className="ul-container">
         {commentsList.map(eachComment => (
           <CommentItem
             key={eachComment.id}
-            bgClassNames={initialContainerBackgroundClassNames}
             commentDetails={eachComment}
+            isLikedMark={this.getIsLiked}
+            clickDel={this.clockOnDelBtn}
           />
         ))}
       </ul>
@@ -60,53 +87,42 @@ class Comments extends Component {
 
   render() {
     const {commentsList, name, comment} = this.state
-
     const jsxElement = (
       <div className="comments-bg-container">
         <div className="comment-sub-container">
+          <h1 className="app-heading">Comments</h1>
           <div className="comment-input-container">
-            <div className="input-sub-container">
-              <h1 className="heading">Comments</h1>
-              <img
-                src="https://assets.ccbp.in/frontend/react-js/comments-app/comments-img.png"
-                alt="comments"
-                className="comment-img sm-image"
-              />
+            <form onSubmit={this.onAddComment} className="form-container">
               <p className="paragraph">Say something about 4.0 Technologies</p>
-              <form onSubmit={this.onAddComment} className="form-container">
-                <input
-                  value={name}
-                  placeholder="Your Name"
-                  onChange={this.changeName}
-                  className="text-input"
-                />
-                <textarea
-                  rows="8"
-                  cols="55"
-                  placeholder="Your Comment"
-                  onChange={this.changeComment}
-                  className="text-input"
-                  value={comment}
-                >
-                  {comment}
-                </textarea>
-                <button type="submit" className="add-comment-btn">
-                  Add Comment
-                </button>
-              </form>
-            </div>
+              <input
+                value={name}
+                placeholder="Your Name"
+                onChange={this.changeName}
+                className="text-input"
+              />
+              <textarea
+                rows="8"
+                placeholder="Your Comment"
+                onChange={this.changeComment}
+                className="text-input"
+                value={comment}
+              />
+              <button type="submit" className="add-comment-btn">
+                Add Comment
+              </button>
+            </form>
             <img
               src="https://assets.ccbp.in/frontend/react-js/comments-app/comments-img.png"
               alt="comments"
-              className="comment-img lg-image"
+              className="comment-img"
             />
           </div>
-          <hr />
-          <div className="comment-count-container">
-            <p className="comment-count">0</p>
-            <p className="count-description">Comments</p>
-          </div>
-          {commentsList.length === 0 ? '' : this.getUlContainer()}
+          <hr className="line" />
+          <p className="count-description">
+            <span className="comment-count">{commentsList.length}</span>
+            Comments
+          </p>
+          {this.getUlContainer()}
         </div>
       </div>
     )
